@@ -1,0 +1,24 @@
+name: golangci-lint
+on:
+  pull_request:
+    branches:
+      - main
+      - development
+permissions:
+  contents: read
+jobs:
+  golangci:
+    name: lint
+    runs-on: [self-hosted,linux,X64,k8s,livelogs-runner]
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: v1.54
+          args: -v -E gofmt -E gci --timeout 5m
