@@ -1,7 +1,6 @@
 package encryption
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/md5"
@@ -10,33 +9,11 @@ import (
 	"fmt"
 )
 
-const (
-	secretKey = "f1993e87-8db6-4748-9d86-a1e652f6"
-	secretIv  = "abcdef1234567890"
-)
-
-func Encrypt(plainText string) (string, error) {
-	if len(plainText) == 0 {
-		return plainText, nil
-	}
-	digest := getDigest()
-	block, err := aes.NewCipher(digest)
-	if err != nil {
-		return "", fmt.Errorf("failed to create cipher: %w", err)
-	}
-	input := pkcs5Padding([]byte(plainText), block.BlockSize())
-	ivBytes := []byte(secretIv)[:block.BlockSize()]
-	cipherText := make([]byte, len(input))
-	mode := cipher.NewCBCEncrypter(block, ivBytes)
-	mode.CryptBlocks(cipherText, input)
-	return base64.StdEncoding.EncodeToString(cipherText), nil
-}
-
-func Decrypt(encrypted string) (string, error) {
+func Decrypt(encrypted string, secretKey string, secretIv string) (string, error) {
 	if len(encrypted) == 0 {
 		return encrypted, nil
 	}
-	digest := getDigest()
+	digest := getDigest(secretKey)
 	block, err := aes.NewCipher(digest)
 	if err != nil {
 		return "", fmt.Errorf("failed to create cipher: %w", err)
@@ -59,14 +36,9 @@ func Decrypt(encrypted string) (string, error) {
 	return string(decrypted), nil
 }
 
-func getDigest() []byte {
+func getDigest(secretKey string) []byte {
 	hash := md5.Sum([]byte(secretKey))
 	return hash[:]
-}
-
-func pkcs5Padding(data []byte, blockSize int) []byte {
-	padding := blockSize - len(data)%blockSize
-	return append(data, bytes.Repeat([]byte{byte(padding)}, padding)...)
 }
 
 func pkcs5Unpadding(data []byte, blockSize int) ([]byte, error) {

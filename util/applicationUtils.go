@@ -19,7 +19,7 @@ import (
 
 var log logger.Logger
 
-func getLogsSearchConfig(env, org, account, cloudProvider, serviceName, componentName, componentType string) models.LogSearchConfig {
+func getLogsSearchConfig(env, org, account, cloudProvider, serviceName, componentName, componentType, asgName string) models.LogSearchConfig {
 	queryMap := map[string]string{
 		"serviceName":   serviceName,
 		"componentName": componentName,
@@ -28,12 +28,14 @@ func getLogsSearchConfig(env, org, account, cloudProvider, serviceName, componen
 		"org":           org,
 		"account":       account,
 		"cloudProvider": cloudProvider,
+		"asgName":       asgName,
 	}
 	log.Debug(fmt.Sprintf("Fetching logs search config with query: %v", queryMap))
 
 	req := request.Request{
 		Method: "GET",
-		URL:    constants.CentralLiveLogAgentHost + "/live-logs-config",
+		Header: map[string]string{"Content-Type": "application/json"},
+		URL:    constants.CentralLiveLogAgentHost + "/api/v1/livelogs/config",
 		Query:  queryMap,
 	}
 	res := req.Make()
@@ -86,11 +88,11 @@ func GetEpochTimeFromTimestamp(timeStamp string) int64 {
 	return parsedTime.Add(-time.Minute*330).UnixNano() / int64(time.Millisecond)
 }
 
-func GetLogsSearchConfig(env, org, account, cloudProvider, serviceName, componentName, componentType string) models.LogSearchConfig {
+func GetLogsSearchConfig(env, org, account, cloudProvider, serviceName, componentName, componentType, asgName string) models.LogSearchConfig {
 	if account == "" && (env == "prod" || org == "uat") {
 		account = "prod"
 	}
-	return getLogsSearchConfig(env, org, account, cloudProvider, serviceName, componentName, componentType)
+	return getLogsSearchConfig(env, org, account, cloudProvider, serviceName, componentName, componentType, asgName)
 }
 
 func GetIpsFromHost(host string) []string {
@@ -174,7 +176,7 @@ func UserLogFunc(args *models.LogsCommandArgs, tenant string) {
 
 	req := request.Request{
 		Method: "POST",
-		URL:    constants.CentralLiveLogAgentHost + "/livelogs-user-log",
+		URL:    constants.CentralLiveLogAgentHost + "/api/v1/livelogs/log",
 		Header: map[string]string{
 			"X-Tenant-Name": tenant,
 			"Content-Type":  "application/json",

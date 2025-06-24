@@ -146,6 +146,162 @@ func (x *VectorLogs) GetExtra() map[string]string {
 	return nil
 }
 
+type AsgLogs struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	AccountId            string                 `protobuf:"bytes,1,opt,name=accountId,proto3" json:"accountId,omitempty"`
+	AutoScalingGroupName string                 `protobuf:"bytes,2,opt,name=autoScalingGroupName,proto3" json:"autoScalingGroupName,omitempty"`
+	Details              string                 `protobuf:"bytes,3,opt,name=details,proto3" json:"details,omitempty"`
+	ActivityId           string                 `protobuf:"bytes,4,opt,name=activityId,proto3" json:"activityId,omitempty"`
+	RequestId            string                 `protobuf:"bytes,5,opt,name=requestId,proto3" json:"requestId,omitempty"`
+	Progress             string                 `protobuf:"bytes,6,opt,name=progress,proto3" json:"progress,omitempty"`
+	Event                string                 `protobuf:"bytes,7,opt,name=event,proto3" json:"event,omitempty"`
+	StatusCode           string                 `protobuf:"bytes,8,opt,name=statusCode,proto3" json:"statusCode,omitempty"`
+	StatusMessage        string                 `protobuf:"bytes,9,opt,name=statusMessage,proto3" json:"statusMessage,omitempty"`
+	Description          string                 `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty"`
+	Cause                string                 `protobuf:"bytes,11,opt,name=cause,proto3" json:"cause,omitempty"`
+	StartTime            string                 `protobuf:"bytes,12,opt,name=startTime,proto3" json:"startTime,omitempty"`
+	EndTime              string                 `protobuf:"bytes,13,opt,name=endTime,proto3" json:"endTime,omitempty"`
+	Ec2InstanceId        string                 `protobuf:"bytes,14,opt,name=ec2InstanceId,proto3" json:"ec2InstanceId,omitempty"`
+	Timestamp            *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=Timestamp,proto3" json:"Timestamp,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *AsgLogs) Reset() {
+	*x = AsgLogs{}
+	mi := &file_proto_prod_testing_logcentral_logs_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AsgLogs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AsgLogs) ProtoMessage() {}
+
+func (x *AsgLogs) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_prod_testing_logcentral_logs_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AsgLogs.ProtoReflect.Descriptor instead.
+func (*AsgLogs) Descriptor() ([]byte, []int) {
+	return file_proto_prod_testing_logcentral_logs_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *AsgLogs) GetAccountId() string {
+	if x != nil {
+		return x.AccountId
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetAutoScalingGroupName() string {
+	if x != nil {
+		return x.AutoScalingGroupName
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetDetails() string {
+	if x != nil {
+		return x.Details
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetActivityId() string {
+	if x != nil {
+		return x.ActivityId
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetProgress() string {
+	if x != nil {
+		return x.Progress
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetEvent() string {
+	if x != nil {
+		return x.Event
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetStatusCode() string {
+	if x != nil {
+		return x.StatusCode
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetStatusMessage() string {
+	if x != nil {
+		return x.StatusMessage
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetCause() string {
+	if x != nil {
+		return x.Cause
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetStartTime() string {
+	if x != nil {
+		return x.StartTime
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetEndTime() string {
+	if x != nil {
+		return x.EndTime
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetEc2InstanceId() string {
+	if x != nil {
+		return x.Ec2InstanceId
+	}
+	return ""
+}
+
+func (x *AsgLogs) GetTimestamp() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Timestamp
+	}
+	return nil
+}
+
 var File_proto_prod_testing_logcentral_logs_proto protoreflect.FileDescriptor
 
 const file_proto_prod_testing_logcentral_logs_proto_rawDesc = "" +
@@ -176,7 +332,28 @@ const file_proto_prod_testing_logcentral_logs_proto_rawDesc = "" +
 	"\t_hostnameB\v\n" +
 	"\t_ddsourceB\x0e\n" +
 	"\f_source_typeB\t\n" +
-	"\a_statusB+\n" +
+	"\a_status\"\xfb\x03\n" +
+	"\aAsgLogs\x12\x1c\n" +
+	"\taccountId\x18\x01 \x01(\tR\taccountId\x122\n" +
+	"\x14autoScalingGroupName\x18\x02 \x01(\tR\x14autoScalingGroupName\x12\x18\n" +
+	"\adetails\x18\x03 \x01(\tR\adetails\x12\x1e\n" +
+	"\n" +
+	"activityId\x18\x04 \x01(\tR\n" +
+	"activityId\x12\x1c\n" +
+	"\trequestId\x18\x05 \x01(\tR\trequestId\x12\x1a\n" +
+	"\bprogress\x18\x06 \x01(\tR\bprogress\x12\x14\n" +
+	"\x05event\x18\a \x01(\tR\x05event\x12\x1e\n" +
+	"\n" +
+	"statusCode\x18\b \x01(\tR\n" +
+	"statusCode\x12$\n" +
+	"\rstatusMessage\x18\t \x01(\tR\rstatusMessage\x12 \n" +
+	"\vdescription\x18\n" +
+	" \x01(\tR\vdescription\x12\x14\n" +
+	"\x05cause\x18\v \x01(\tR\x05cause\x12\x1c\n" +
+	"\tstartTime\x18\f \x01(\tR\tstartTime\x12\x18\n" +
+	"\aendTime\x18\r \x01(\tR\aendTime\x12$\n" +
+	"\rec2InstanceId\x18\x0e \x01(\tR\rec2InstanceId\x128\n" +
+	"\tTimestamp\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\tTimestampB+\n" +
 	"\x14com.dream11.protobufP\x01Z\x11livelogs/protobufb\x06proto3"
 
 var (
@@ -191,22 +368,24 @@ func file_proto_prod_testing_logcentral_logs_proto_rawDescGZIP() []byte {
 	return file_proto_prod_testing_logcentral_logs_proto_rawDescData
 }
 
-var file_proto_prod_testing_logcentral_logs_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_prod_testing_logcentral_logs_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_proto_prod_testing_logcentral_logs_proto_goTypes = []any{
 	(*VectorLogs)(nil),            // 0: logcentral.logs.VectorLogs
-	nil,                           // 1: logcentral.logs.VectorLogs.DdtagsEntry
-	nil,                           // 2: logcentral.logs.VectorLogs.ExtraEntry
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*AsgLogs)(nil),               // 1: logcentral.logs.AsgLogs
+	nil,                           // 2: logcentral.logs.VectorLogs.DdtagsEntry
+	nil,                           // 3: logcentral.logs.VectorLogs.ExtraEntry
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
 var file_proto_prod_testing_logcentral_logs_proto_depIdxs = []int32{
-	1, // 0: logcentral.logs.VectorLogs.ddtags:type_name -> logcentral.logs.VectorLogs.DdtagsEntry
-	3, // 1: logcentral.logs.VectorLogs.timestamp:type_name -> google.protobuf.Timestamp
-	2, // 2: logcentral.logs.VectorLogs.extra:type_name -> logcentral.logs.VectorLogs.ExtraEntry
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	2, // 0: logcentral.logs.VectorLogs.ddtags:type_name -> logcentral.logs.VectorLogs.DdtagsEntry
+	4, // 1: logcentral.logs.VectorLogs.timestamp:type_name -> google.protobuf.Timestamp
+	3, // 2: logcentral.logs.VectorLogs.extra:type_name -> logcentral.logs.VectorLogs.ExtraEntry
+	4, // 3: logcentral.logs.AsgLogs.Timestamp:type_name -> google.protobuf.Timestamp
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_proto_prod_testing_logcentral_logs_proto_init() }
@@ -221,7 +400,7 @@ func file_proto_prod_testing_logcentral_logs_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_prod_testing_logcentral_logs_proto_rawDesc), len(file_proto_prod_testing_logcentral_logs_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

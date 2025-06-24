@@ -31,7 +31,8 @@ func init() {
 	logsCmd.Flags().StringP(constants.ArgumentEnv, "e", "", "* environment name (Mandatory)")
 	logsCmd.Flags().StringP(constants.ArgumentServiceName, "s", "", "service_name")
 	logsCmd.Flags().StringP(constants.ArgumentComponentName, "c", "", "component_name")
-	logsCmd.Flags().StringP(constants.ArgumentComponentType, "", "application", "component_type")
+	logsCmd.Flags().StringP(constants.ArgumentComponentType, "", "application", "component_type can be: [application, asg]")
+	logsCmd.Flags().StringP(constants.AsgName, "", "", "asg_name")
 	logsCmd.Flags().StringP(constants.ArgumentOrg, "o", "d11", "org name can be: [d11, d3, dp, hulk]")
 	logsCmd.Flags().StringP(constants.ArgumentCloudProvider, "", "aws", "cloud_provider can be: [aws, gcp] (Default is aws)")
 	logsCmd.Flags().StringP(constants.ArgumentAccount, "a", "", "account type [prod, load, stag] (Default is based on env name if env is prod or uat then account is prod)")
@@ -86,11 +87,15 @@ func logsCmdHandler(ctx context.Context, cmd *cobra.Command, args []string) <-ch
 
 		if util.IsCloudMachine() {
 			log.Debug("Identified as central live log agent host")
-			log.Success(fmt.Sprintf("Reading logs for service_name: %s component_name: %s env: %s org: %s account: %s cloudProvider: %s", logCmdArgs.ServiceName, logCmdArgs.ComponentName, logCmdArgs.Env, logCmdArgs.Org, logCmdArgs.Account, logCmdArgs.CloudProvider))
+			if logCmdArgs.ComponentType == "application" {
+				log.Success(fmt.Sprintf("Reading logs for service_name: %s component_name: %s env: %s org: %s account: %s cloudProvider: %s", logCmdArgs.ServiceName, logCmdArgs.ComponentName, logCmdArgs.Env, logCmdArgs.Org, logCmdArgs.Account, logCmdArgs.CloudProvider))
+			} else if logCmdArgs.ComponentType == "asg" {
+				log.Success(fmt.Sprintf("Reading ASG logs for asg_name: %s env: %s org: %s account: %s", logCmdArgs.AsgName, logCmdArgs.Env, logCmdArgs.Org, logCmdArgs.Account))
+			}
 			var logSearchConfig models.LogSearchConfig
 			if logCmdArgs.LogSearchConfig == (models.LogSearchConfig{}) {
 				log.Debug("Log search config is empty so fetching...")
-				logSearchConfig = util.GetLogsSearchConfig(logCmdArgs.Env, logCmdArgs.Org, logCmdArgs.Account, logCmdArgs.CloudProvider, logCmdArgs.ServiceName, logCmdArgs.ComponentName, logCmdArgs.ComponentType)
+				logSearchConfig = util.GetLogsSearchConfig(logCmdArgs.Env, logCmdArgs.Org, logCmdArgs.Account, logCmdArgs.CloudProvider, logCmdArgs.ServiceName, logCmdArgs.ComponentName, logCmdArgs.ComponentType, logCmdArgs.AsgName)
 				validateArguments(&logCmdArgs, &logSearchConfig)
 			} else {
 				log.Debug("Log search config is not empty so using it...")
@@ -99,7 +104,7 @@ func logsCmdHandler(ctx context.Context, cmd *cobra.Command, args []string) <-ch
 			readFromKafka(&logCmdArgs, &logSearchConfig)
 		} else {
 			log.Debug("Identified as local live log agent host")
-			logSearchConfig := util.GetLogsSearchConfig(logCmdArgs.Env, logCmdArgs.Org, logCmdArgs.Account, logCmdArgs.CloudProvider, logCmdArgs.ServiceName, logCmdArgs.ComponentName, logCmdArgs.ComponentType)
+			logSearchConfig := util.GetLogsSearchConfig(logCmdArgs.Env, logCmdArgs.Org, logCmdArgs.Account, logCmdArgs.CloudProvider, logCmdArgs.ServiceName, logCmdArgs.ComponentName, logCmdArgs.ComponentType, logCmdArgs.AsgName)
 			validateArguments(&logCmdArgs, &logSearchConfig)
 			commandForCentralLivelogsAgent := getCommandForCentralLivelogsAgent(cmd, args, logCmdArgs.LinuxOperation, &logSearchConfig)
 			readFromCentralLivelogsAgent(commandForCentralLivelogsAgent, logSearchConfig, &logCmdArgs)
@@ -126,6 +131,9 @@ func parseArguments(cmd *cobra.Command) models.LogsCommandArgs {
 	linuxOperation, _ := cmd.Flags().GetString(constants.ArgumentLinuxOperation)
 	logSearchConfigString, _ := cmd.Flags().GetString(constants.LogSearchConfig)
 	showTags, _ := cmd.Flags().GetString(constants.ArgumentShowTags)
+	asgName, _ := cmd.Flags().GetString(constants.AsgName)
+	componentType, _ := cmd.Flags().GetString(constants.ArgumentComponentType)
+
 	var logSearchConfig = models.LogSearchConfig{}
 	if logSearchConfigString != "" {
 		err := json.Unmarshal([]byte(logSearchConfigString), &logSearchConfig)
@@ -137,6 +145,7 @@ func parseArguments(cmd *cobra.Command) models.LogsCommandArgs {
 	return models.LogsCommandArgs{
 		Env:             env,
 		Account:         account,
+		AsgName:         asgName,
 		ServiceName:     serviceName,
 		ComponentName:   componentName,
 		Org:             org,
@@ -147,6 +156,7 @@ func parseArguments(cmd *cobra.Command) models.LogsCommandArgs {
 		LinuxOperation:  linuxOperation,
 		LogSearchConfig: logSearchConfig,
 		ShowTags:        showTags,
+		ComponentType:   componentType,
 	}
 }
 
@@ -241,12 +251,86 @@ func printLogsOnTerminal(dtags []byte, serviceName, hostname, message string) {
 	}
 }
 
-func processMessage(msg, serviceName, componentName string, isLowerEnv bool, dtags []byte, logsStruct models.VectorLogsStruct) {
-	shouldPrint := !isLowerEnv || (serviceName == "" && componentName == "") ||
-		(logsStruct.Service != "" && strings.EqualFold(logsStruct.Service, serviceName) &&
-			(componentName == "" || (logsStruct.Service != "" && strings.EqualFold(logsStruct.ComponentName, componentName))))
+func processAsgLogs(consumerMsg *sarama.ConsumerMessage, args *models.LogsCommandArgs) {
+	var asgLogs = &protobuf.AsgLogs{}
+	if err := proto.Unmarshal(consumerMsg.Value, asgLogs); err != nil {
+		log.Debug(fmt.Sprintf("Failed to decode message value: %v Error: %v", consumerMsg.Value, err))
+		return
+	}
+
+	logsStruct := models.AsgLogsStruct{
+		AccountId:            asgLogs.AccountId,
+		AutoScalingGroupName: asgLogs.AutoScalingGroupName,
+		Details:              asgLogs.Details,
+		ActivityId:           asgLogs.ActivityId,
+		RequestId:            asgLogs.RequestId,
+		Progress:             asgLogs.Progress,
+		Event:                asgLogs.Event,
+		StatusCode:           asgLogs.StatusCode,
+		StatusMessage:        asgLogs.StatusMessage,
+		Description:          asgLogs.Description,
+		Cause:                asgLogs.Cause,
+		StartTime:            asgLogs.StartTime,
+		EndTime:              asgLogs.EndTime,
+		EC2InstanceId:        asgLogs.Ec2InstanceId,
+	}
+	if strings.Contains(strings.ToLower(args.AsgName), logsStruct.AutoScalingGroupName) {
+		jsonData, err := json.MarshalIndent(logsStruct, "", " ")
+		if err != nil {
+			fmt.Println("Error marshaling to JSON:", err)
+		} else {
+			fmt.Println(string(jsonData))
+		}
+	}
+}
+
+func processApplicationLogs(consumerMsg *sarama.ConsumerMessage, args *models.LogsCommandArgs, isLowerEnv bool, showTagsArray []string) {
+	var vectorLogs = &protobuf.VectorLogs{}
+	if err := proto.Unmarshal(consumerMsg.Value, vectorLogs); err != nil {
+		log.Debug("Failed to decode message value. Error: " + err.Error())
+		return
+	}
+
+	if args.ShowTags != "" {
+		for key := range vectorLogs.Ddtags {
+			if !isDdTagAllowed(key, showTagsArray) {
+				delete(vectorLogs.Ddtags, key)
+			}
+		}
+	}
+
+	ddtags, err := json.Marshal(vectorLogs.Ddtags)
+	if err != nil {
+		log.Debug("Failed to encode ddtags. Error: " + err.Error())
+		return
+	}
+
+	logsStruct := models.VectorLogsStruct{
+		Message:       vectorLogs.Message,
+		Hostname:      util.DereferenceString(vectorLogs.Hostname),
+		Env:           vectorLogs.Env,
+		ComponentName: vectorLogs.ComponentName,
+		Service:       vectorLogs.ServiceName,
+		Ddtags:        vectorLogs.Ddtags,
+	}
+
+	shouldPrint := !isLowerEnv || (args.ServiceName == "" && args.ComponentName == "") ||
+		(logsStruct.Service != "" && strings.EqualFold(logsStruct.Service, args.ServiceName) &&
+			(args.ComponentName == "" || (logsStruct.Service != "" && strings.EqualFold(logsStruct.ComponentName, args.ComponentName))))
+
 	if shouldPrint {
-		printLogsOnTerminal(dtags, logsStruct.Service, logsStruct.Hostname, msg)
+		message := logsStruct.Message
+		if reflect.TypeOf(message).String() == "string" {
+			msg := message.(string)
+			printLogsOnTerminal(ddtags, logsStruct.Service, logsStruct.Hostname, msg)
+		} else {
+			msg, err := json.Marshal(message)
+			if err != nil {
+				log.Debug("Failed to decode message. Error: " + err.Error())
+				return
+			}
+			printLogsOnTerminal(ddtags, logsStruct.Service, logsStruct.Hostname, string(msg))
+		}
 	}
 }
 
@@ -411,46 +495,10 @@ func readFromKafka(args *models.LogsCommandArgs, logSearchConfig *models.LogSear
 					return
 				}
 
-				var vectorLogs = &protobuf.VectorLogs{}
-				if err := proto.Unmarshal(eachMessage.Value, vectorLogs); err != nil {
-					log.Debug("Failed to decode message value. Error: " + err.Error())
-					continue
-				}
-
-				if args.ShowTags != "" {
-					for key := range vectorLogs.Ddtags {
-						if !isDdTagAllowed(key, showTagsArray) {
-							delete(vectorLogs.Ddtags, key)
-						}
-					}
-				}
-
-				ddtags, err := json.Marshal(vectorLogs.Ddtags)
-				if err != nil {
-					log.Debug("Failed to encode ddtags. Error: " + err.Error())
-					continue
-				}
-
-				logsStruct := models.VectorLogsStruct{
-					Message:       vectorLogs.Message,
-					Hostname:      util.DereferenceString(vectorLogs.Hostname),
-					Env:           vectorLogs.Env,
-					ComponentName: vectorLogs.ComponentName,
-					Service:       vectorLogs.ServiceName,
-					Ddtags:        vectorLogs.Ddtags,
-				}
-
-				message := logsStruct.Message
-				if reflect.TypeOf(message).String() == "string" {
-					msg := message.(string)
-					processMessage(msg, args.ServiceName, args.ComponentName, logSearchConfig.IsLowerEnv, ddtags, logsStruct)
-				} else {
-					msg, err := json.Marshal(message)
-					if err != nil {
-						log.Debug("Failed to decode message. Error: " + err.Error())
-						continue
-					}
-					processMessage(string(msg), args.ServiceName, args.ComponentName, logSearchConfig.IsLowerEnv, ddtags, logsStruct)
+				if args.ComponentType == "application" {
+					processApplicationLogs(eachMessage, args, logSearchConfig.IsLowerEnv, showTagsArray)
+				} else if args.ComponentType == "asg" {
+					processAsgLogs(eachMessage, args)
 				}
 			}
 			closeMutex.Lock()
@@ -494,7 +542,7 @@ func readFromCentralLivelogsAgent(command string, logSearchConfig models.LogSear
 
 	log.Debug("Connecting to central livelogs agent IP: " + centralLiveLogsAgentIp)
 	remoteAddr := fmt.Sprintf("%s:%d", centralLiveLogsAgentIp, logSearchConfig.LiveLogAgentSshPort)
-	decryptedPem, err := encryption.Decrypt(logSearchConfig.LiveLogAgentSshPemKey)
+	decryptedPem, err := encryption.Decrypt(logSearchConfig.LiveLogAgentSshPemKey, logSearchConfig.LiveLogAgentSecretKey, logSearchConfig.LiveLogAgentSecretIv)
 
 	if err != nil {
 		log.Debug("Failed to decrypt ssh key: " + err.Error())

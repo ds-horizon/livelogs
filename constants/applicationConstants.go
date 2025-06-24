@@ -6,6 +6,7 @@ const (
 	ArgumentServiceName           = "service_name"
 	ArgumentComponentName         = "component_name"
 	ArgumentComponentType         = "component_type"
+	AsgName                       = "asg_name"
 	ArgumentEnv                   = "env"
 	ArgumentOrg                   = "org"
 	ArgumentCloudProvider         = "cloud_provider"
