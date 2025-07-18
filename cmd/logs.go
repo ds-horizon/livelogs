@@ -33,7 +33,7 @@ func init() {
 	logsCmd.Flags().StringP(constants.ArgumentComponentName, "c", "", "component_name")
 	logsCmd.Flags().StringP(constants.ArgumentComponentType, "", "application", "component_type can be: [application, asg]")
 	logsCmd.Flags().StringP(constants.AsgName, "", "", "asg_name")
-	logsCmd.Flags().StringP(constants.ArgumentOrg, "o", "d11", "org name can be: [d11, d3, dp, hulk]")
+	logsCmd.Flags().StringP(constants.ArgumentOrg, "o", "d11", "org name can be: [d11, dp, hulk]")
 	logsCmd.Flags().StringP(constants.ArgumentCloudProvider, "", "aws", "cloud_provider can be: [aws, gcp] (Default is aws)")
 	logsCmd.Flags().StringP(constants.ArgumentAccount, "a", "", "account type [prod, load, stag] (Default is based on env name if env is prod or uat then account is prod)")
 	logsCmd.Flags().StringP(constants.ArgumentStartTime, "", "", "Start time if you want to see historic logs (Give the time in IST, with this format \"2025-01-02 15:04:05\")")
