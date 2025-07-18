@@ -1,43 +1,57 @@
 name: livelogs-release
+
 on:
   pull_request:
     types: [closed]
+
 jobs:
   release:
     name: livelogs-release
     if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
-    runs-on: [self-hosted, linux, X64, k8s, livelogs-runner]
+    runs-on: ubuntu-latest
+
     permissions:
       contents: write
+
     steps:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: '1.22'
+
       - name: Checkout code
         uses: actions/checkout@v2
-      - id: changed_files
-        uses: jitterbit/get-changed-files@v1
+
+      - name: Check linting
+          uses: golangci/golangci-lint-action@v4
+          with:
+            version: v1.54
+            args: -v -E gofmt -E gci --timeout 5m
+
       - name: Check commit details
         id: commit
         run: |
           echo "version=$(go run version/getVersion.go)" >> "$GITHUB_ENV"
           echo "changelog=$(git log --pretty='- %s')" >> "$GITHUB_ENV"
+
       - name: Create Tag
         uses: negz/create-tag@v1
         with:
           version: ${{ env.version }}
           message: ${{ env.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release Asset
         run: |
           make compressed-builds
+
       - name: Generate Asset SHA256
         id: sha256
         run: |
           echo "darwin_amd64=$(shasum -a 256 bin/livelogs_darwin_amd64.tar.gz | cut -d' ' -f1)" >> "$GITHUB_ENV"
           echo "darwin_arm64=$(shasum -a 256 bin/livelogs_darwin_arm64.tar.gz | cut -d' ' -f1)" >> "$GITHUB_ENV"
           echo "linux_amd64=$(shasum -a 256 bin/livelogs_linux_amd64.tar.gz | cut -d' ' -f1)" >> "$GITHUB_ENV"
+
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
