@@ -65,15 +65,15 @@ jobs:
             ### Assets
 
             #### Darwin AMD64
-            - Asset Url: https://github.com/dream11/livelogs/releases/download/${{ env.version }}/livelogs_darwin_amd64.tar.gz
+            - Asset Url: https://github.com/dream-sports-labs/livelogs/releases/download/${{ env.version }}/livelogs_darwin_amd64.tar.gz
             - SHA Checksum: `${{ env.darwin_amd64 }}`
 
             #### Darwin ARM64
-            - Asset Url: https://github.com/dream11/livelogs/releases/download/${{ env.version }}/livelogs_darwin_arm64.tar.gz
+            - Asset Url: https://github.com/dream-sports-labs/livelogs/releases/download/${{ env.version }}/livelogs_darwin_arm64.tar.gz
             - SHA Checksum: `${{ env.darwin_arm64 }}`
 
             #### Linux AMD64
-            - Asset Url: https://github.com/dream11/livelogs/releases/download/${{ env.version }}/livelogs_linux_amd64.tar.gz
+            - Asset Url: https://github.com/dream-sports-labs/livelogs/releases/download/${{ env.version }}/livelogs_linux_amd64.tar.gz
             - SHA Checksum: `${{ env.linux_amd64 }}`
 
           token: ${{ secrets.GITHUB_TOKEN }}
