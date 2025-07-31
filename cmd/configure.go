@@ -31,7 +31,7 @@ var configureCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), constants.GlobalLogsCommandTimeout)
 		defer cancel()
 		select {
-		case <-configureCmdHandler(ctx, cmd, args):
+		case <-configureCmdHandler(ctx, cmd):
 			log.Debug("Operation completed successfully.")
 		case <-ctx.Done():
 			if ctx.Err() == context.DeadlineExceeded {
@@ -43,7 +43,7 @@ var configureCmd = &cobra.Command{
 	},
 }
 
-func configureCmdHandler(ctx context.Context, cmd *cobra.Command, args []string) <-chan string {
+func configureCmdHandler(ctx context.Context, cmd *cobra.Command) <-chan string {
 	result := make(chan string)
 	isVerboseLoggingEnabled, _ := cmd.Flags().GetBool(constants.ArgumentVerbose)
 	if isVerboseLoggingEnabled {

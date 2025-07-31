@@ -1,22 +1,31 @@
 #!/bin/bash
 
-LIVLOGS_FUNCTION_NAME="livelogs()"
+LIVELOGS_FUNCTION_NAME="livelogs()"
 
 # Function block to be injected
-LIVLOGS_FUNCTION=$(cat << 'EOF'
+LIVELOGS_FUNCTION=$(cat << 'EOF'
 
 #####LIVELOGS_INSTALLATION_BEGIN#####
 livelogs() {
     if curl -Is https://artifactory.dream11.com/prod/central-log-management/ll-installer.py | head -n 1 | grep -q "200"; then
         curl -s -o ~/.livelogs/livelogs_installer.py https://artifactory.dream11.com/prod/central-log-management/ll-installer.py
     elif [ -f ~/.livelogs/livelogs_installer.py ]; then
-        echo "⚠ Failed to download the livelogs installer using existing installer."
+        echo "⚠️ Failed to download the livelogs installer using existing installer."
     else
-        echo "✗ Failed to download the livelogs installer. Press Enter to close..."
+        echo "❌ Failed to download the livelogs installer. Press Enter to close..." >&2
         read
         exit 1
     fi
-    python ~/.livelogs/livelogs_installer.py "$@"
+
+    if command -v python >/dev/null 2>&1; then
+        python ~/.livelogs/livelogs_installer.py "$@"
+    elif command -v python3 >/dev/null 2>&1; then
+        python3 ~/.livelogs/livelogs_installer.py "$@"
+    else
+        echo "❌ Python not found. Install it to run livelogs. Press Enter to close..." >&2
+        read
+        exit 1
+    fi
 }
 #####LIVELOGS_INSTALLATION_END#####
 
@@ -27,16 +36,25 @@ EOF
 CONFIG_FILES=(
     "$HOME/.zshrc"
     "$HOME/.bashrc"
+    "$HOME/.bash_profile"
     "$HOME/.profile"
 )
 
+throw_exception() {
+    local message="$1"
+    echo "$message" >&2
+    exit 0
+}
+
 # Add function block to all config files if not already present
 for FILE in "${CONFIG_FILES[@]}"; do
-    if [ -f "$FILE" ] && grep -q "$LIVLOGS_FUNCTION_NAME" "$FILE"; then
-        echo "ℹ️  LiveLogs already configured in $FILE"
+    if [ -f "$FILE" ] && grep -q "$LIVELOGS_FUNCTION_NAME" "$FILE"; then
+        echo "LiveLogs already configured in $FILE"
+    elif [ -f "$FILE" ] && [ -w "$FILE" ]; then
+        echo "Adding livelogs function to $FILE"
+        echo "$LIVELOGS_FUNCTION" >> "$FILE"
     else
-        echo "➕ Adding livelogs function to $FILE"
-        echo "$LIVLOGS_FUNCTION" >> "$FILE"
+        throw_exception "Unable to write to $FILE — permission denied. You may need elevated privileges (try using sudo)."
     fi
 done
 
@@ -57,6 +75,9 @@ case "$SHELL_NAME" in
         if [ -f "$HOME/.bashrc" ]; then
             source "$HOME/.bashrc" >/dev/null 2>&1
         fi
+        if [ -f "$HOME/.bash_profile" ]; then
+            source "$HOME/.bash_profile" >/dev/null 2>&1
+        fi
         ;;
     *)
         if [ -f "$HOME/.profile" ]; then
@@ -65,4 +86,4 @@ case "$SHELL_NAME" in
         ;;
 esac
 
-echo "✅ Setup complete. You can now run: livelogs"
+echo "✅ Setup completed. You can now run: livelogs"
