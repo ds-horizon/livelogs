@@ -24,8 +24,8 @@ func init() {
 
 var configureCmd = &cobra.Command{
 	Use:   "configure",
-	Short: "To print your component logs",
-	Long:  "To print your component logs",
+	Short: "To run livelogs configuration script",
+	Long:  "To run livelogs configuration script",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), constants.GlobalLogsCommandTimeout)
 		defer cancel()
