@@ -23,6 +23,7 @@ A powerful CLI tool for real-time log streaming and historical log analysis acro
 
 ```shell
 brew install dream11/tools/livelogs
+livelogs configure
 ```
 
 > **Supported Platforms:** macOS (Intel & Apple Silicon), Linux AMD64

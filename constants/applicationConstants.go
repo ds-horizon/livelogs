@@ -27,4 +27,5 @@ const (
 	CentralLiveLogAgentName       = "central-livelogs"
 	AwsMetadataUrl                = "http://169.254.169.254/latest/meta-data"
 	GcpMetadataUrl                = "http://metadata.google.internal/computeMetadata/v1/"
+	LivelogsSetupScriptPath       = "scripts/livelogs_setup.sh"
 )
