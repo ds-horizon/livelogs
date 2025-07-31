@@ -4,11 +4,12 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/dream11/livelogs/constants"
 	"github.com/dream11/livelogs/pkg/shell"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
 )
 
 var setupScript embed.FS
