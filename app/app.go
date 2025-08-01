@@ -6,5 +6,5 @@ import (
 
 var App = models.Application{
 	Name:    "livelogs",
-	Version: "0.2.4",
+	Version: "0.2.5",
 }
