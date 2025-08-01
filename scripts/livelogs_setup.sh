@@ -43,7 +43,7 @@ CONFIG_FILES=(
 throw_exception() {
     local message="$1"
     echo "$message" >&2
-    exit 0
+    exit 1
 }
 
 # Add function block to all config files if not already present
