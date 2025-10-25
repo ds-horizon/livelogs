@@ -33,7 +33,7 @@ sudo livelogs configure
 
 ### Manual Installation
 
-1. Download the latest release from [GitHub Releases](https://github.com/dream-sports-labs/livelogs/releases)
+1. Download the latest release from [GitHub Releases](https://github.com/ds-horizon/livelogs/releases)
 2. Extract and move to your PATH:
    ```shell
    tar -xzf livelogs_*.tar.gz
@@ -412,8 +412,8 @@ The CLI uses the [Cobra](https://github.com/spf13/cobra) framework for command-l
 
 **Dream11 Engineering Team**
 
-- Repository: [github.com/dream-sports-labs/livelogs](https://github.com/dream11/livelogs)
-- Issues: [GitHub Issues](https://github.com/dream-sports-labs/livelogs/issues)
+- Repository: [github.com/ds-horizon/livelogs](https://github.com/dream11/livelogs)
+- Issues: [GitHub Issues](https://github.com/ds-horizon/livelogs/issues)
 
 ---
 
